@@ -499,7 +499,7 @@ return{P:[mk(1,'Residential Solar','Ali Khan',10,'Lahore',0,'Running',['Photo 1'
 S:[{id:'s1',name:'Site Visit – Gulberg',location:'Lahore, Gulberg',map:'https://maps.google.com/?q=Gulberg+Lahore',date:d(0),desc:'Survey photos – demo data.',publishState:'published',photos:[{url:im('Site 1','#1b6ca8'),tag:'Before',published:true},{url:im('Site 2','#2a8f5a'),tag:'After',published:true}],videos:[]}]}})();
 let R=[];
 const dv=u=>/drive\.google\.com/.test(u)?`<iframe src="${esc(u)}" allow="autoplay" allowfullscreen style="width:100%;aspect-ratio:16/10;border:0;border-radius:10px"></iframe>`:`<video src="${esc(u)}" controls preload="metadata" style="width:100%;border-radius:10px"></video>`;
-let demoMode=false,P=[],S=[],tab='over',q='',st='all';
+let demoMode=false,P=[],S=[],tab='proj',q='',st='all';
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const photos=x=>(x.photos||[]).filter(p=>p.published!==false);
 function match(p){const t=(q||'').toLowerCase();return(!t||[p.name,p.customer,p.location,p.capacity+'kw',p.date].join(' ').toLowerCase().includes(t))}
@@ -510,14 +510,9 @@ function card(p,site){const ph=photos(p);return`<div class="dcard"><h3>${esc(p.n
 ${p.map?`<a href="${esc(p.map)}" target="_blank" style="color:#ffb800">🗺 Google Maps</a> `:''}
 <div class="dthumbs">${ph.map(x=>`<img src="${esc(x.url)}" data-lb="1" data-cap="${esc(p.name)}" loading="lazy">`).join('')}</div></div>`}
 function view(){const b=$('dbody');const dm='';
-$('dtabs').innerHTML=[['over','Overview'],['proj','Projects'],['site','Sites'],['ph','Site Photos'],['reel','Project Videos']].map(t=>`<button data-t="${t[0]}" class="${tab===t[0]?'on':''}">${t[1]}</button>`).join('');
+$('dtabs').innerHTML=[['proj','Projects'],['site','Sites'],['ph','Site Photos'],['reel','Project Videos']].map(t=>`<button data-t="${t[0]}" class="${tab===t[0]?'on':''}">${t[1]}</button>`).join('');
 const bar=`<div class="dbar"><input id="dq" placeholder="Search name, customer, location, kW, date" value="${esc(q)}"></div>`;
-if(tab==='over'){const now=Date.now(),nw=P.filter(p=>now-new Date(p.createdAt||p.date)<30*864e5).length;
-const g=(function(){try{return groups}catch(e){return{latest:[],edited:[],all:[]}}})(),ap=P.reduce((a,x)=>a.concat(photos(x)),[]),sp=S.reduce((a,x)=>a.concat(photos(x)),[]),sc=(n,l)=>`<div class="dstat"><b>${n}</b>${l}</div>`;
-b.innerHTML=dm+`<div class="dcard"><h3>🎬 Admin 2 – Project Videos Performance</h3><div class="dstats">${sc(R.length,'Total Videos')}${sc(R.filter(r=>now-new Date(r.createdAt||0)<30*864e5).length,'New (30 days)')}</div></div>
-<div class="dcard"><h3>🖼 Admin 2 – Photos Performance</h3><div class="dstats">${sc(ap.length,'Total Photos')}${sc(P.filter(p=>photos(p).length).length,'Sites with photos')}</div></div>
-<div class="dcard"><h3>📁 Admin 2 – Projects Performance</h3><div class="dstats">${sc(P.length,'Total')}${sc(nw,'New (30 days)')}</div></div>`}
-else if(tab==='proj')b.innerHTML=dm+bar+(P.filter(match).map(p=>card(p)).join('')||'<p class="dcard">No projects</p>');
+if(tab==='proj')b.innerHTML=dm+bar+(P.filter(match).map(p=>card(p)).join('')||'<p class="dcard">No projects</p>');
 else if(tab==='site'){const f=S.filter(s=>!q||[s.name,s.location].join(' ').toLowerCase().includes(q.toLowerCase())),ms={};f.forEach(s=>{const k=(s.date||'').slice(0,7)||'No date';(ms[k]=ms[k]||[]).push(s)});b.innerHTML=dm+bar+(Object.keys(ms).sort().reverse().map(k=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px"><h3 style="color:#ffb800;margin:0">${k}</h3><button data-sm="${k}" style="background:#ffb800;color:#000;font-weight:700;border:0;border-radius:8px;padding:8px 12px">⬇ PDF</button></div>`+ms[k].map(s=>card(s,1)).join('')).join('')||'<p class="dcard">No sites</p>')}
 else if(tab==='ph'){const grp=(t,arr)=>arr.map(x=>`<h3 style="color:#ffb800;margin-top:14px">${t} ${esc(x.name)}</h3>${photos(x).length?'':'<small style="color:#9fb3c0">No photos yet</small>'}<div class="dgal">${photos(x).map(p=>`<div style="position:relative"><img src="${esc(p.url)}" data-lb="1" data-cap="${esc(x.name)}" loading="lazy"><span class="dtag" style="position:absolute;left:6px;bottom:6px;max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.name)}</span></div>`).join('')}</div>`).join('');b.innerHTML=dm+(grp('📍',P)||'No sites yet')}
 else if(tab==='reel'){b.innerHTML=dm+`<div class="dgal">${R.map(r=>`<div>${r.url?`<video controls playsinline preload="metadata" ${r.url.indexOf('idb:')===0?`data-idb="${esc(r.url)}"`:`src="${esc(r.url)}"`} style="width:100%;aspect-ratio:9/16;border-radius:10px;background:#000"></video>`:r.link?`<iframe src="${esc(r.link)}" allow="autoplay" allowfullscreen style="width:100%;aspect-ratio:9/16;border:0;border-radius:10px"></iframe>`:'<div class="dcard">No video</div>'}<small>${esc(r.title)}</small></div>`).join('')||'No videos'}</div>`;b.querySelectorAll('video[data-idb]').forEach(el=>{window.idbGet(el.dataset.idb).then(u=>{if(u)el.src=u})})}}
