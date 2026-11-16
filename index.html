@@ -505,10 +505,10 @@ const photos=x=>(x.photos||[]).filter(p=>p.published!==false);
 function match(p){const t=(q||'').toLowerCase();return(!t||[p.name,p.customer,p.location,p.capacity+'kw',p.date].join(' ').toLowerCase().includes(t))}
 function months(){const m={},now=new Date();for(let i=11;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);m[d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')]={t:0,c:0}}P.forEach(p=>{const k=(p.date||'').slice(0,7);if(m[k]){m[k].t++;if(p.status==='Completed')m[k].c++}});return m}
 function chart(){const m=months(),ks=Object.keys(m),mx=Math.max(1,...ks.map(k=>m[k].t));let s='<svg viewBox="0 0 360 170" style="width:100%">';ks.forEach((k,i)=>{const x=6+i*29,h=m[k].t/mx*110,hc=m[k].c/mx*110;s+=`<rect x="${x}" y="${125-h}" width="22" height="${h}" fill="#ffb800" rx="3"/><text x="${x+11}" y="${120-h}" fill="#fff" font-size="9" text-anchor="middle">${m[k].t||''}</text><text x="${x+11}" y="142" fill="#9fb3c0" font-size="8" text-anchor="middle">${k.slice(5)}</text><text x="${x+11}" y="152" fill="#9fb3c0" font-size="7" text-anchor="middle">${k.slice(2,4)}</text>`});return s+'</svg><small style="color:#9fb3c0">Projects by installation month</small>'}
-function card(p,site){const ph=photos(p);return`<div class="dcard"><h3>${esc(p.name)}</h3>
+function card(p,site){const done=p.status==='Completed';return`<div class="dcard"><h3>${esc(p.name)}</h3><span class="dtag${done?' c':''}">${done?'✅ Completed':'⏳ Pending'}</span>
 <small>👤 ${esc(p.customer)} · ⚡ ${esc(p.capacity)} kW<br>📍 ${esc(p.location)} · 📅 ${esc(p.date)}</small><small>${esc(p.desc)}</small>
 ${p.map?`<a href="${esc(p.map)}" target="_blank" style="color:#ffb800">🗺 Google Maps</a> `:''}
-<div class="dthumbs">${ph.map(x=>`<img src="${esc(x.url)}" data-lb="1" data-cap="${esc(p.name)}" loading="lazy">`).join('')}</div></div>`}
+</div>`}
 function view(){const b=$('dbody');const dm='';
 $('dtabs').innerHTML=[['proj','Projects'],['site','Sites'],['ph','Site Photos'],['reel','Project Videos']].map(t=>`<button data-t="${t[0]}" class="${tab===t[0]?'on':''}">${t[1]}</button>`).join('');
 const bar=`<div class="dbar"><input id="dq" placeholder="Search name, customer, location, kW, date" value="${esc(q)}"></div>`;
@@ -553,6 +553,18 @@ const titleEl = document.getElementById('active-title');
 const dlLink  = document.getElementById('download-link');
 const listEl  = document.getElementById('video-list');
 
+/* Download: file seedha download ho, naya page na khule */
+dlLink.addEventListener('click', function(e){
+    e.preventDefault();
+    var u = dlLink.getAttribute('href') || '';
+    if(!u || u === '#') return;
+    var name = (String(dlLink.dataset.name || 'video').replace(/[^\w\- ]+/g, '').trim() || 'video') + '.mp4';
+    var a = document.createElement('a');
+    if(/\/storage\/v1\/object\/sign\//.test(u)){ a.href = u + (u.indexOf('?') > -1 ? '&' : '?') + 'download=' + encodeURIComponent(name); }
+    else { a.href = u; a.download = name; }
+    a.style.display = 'none'; document.body.appendChild(a); a.click(); a.remove();
+});
+
 function fmt(t){
     if(!isFinite(t)) t = 0;
     const m = Math.floor(t/60);
@@ -571,7 +583,7 @@ function playVideo(index){
     if(typeof clearFrame === "function"){ clearFrame(); }
     vid.style.display = "block"; ctrl.classList.add("hide");
     (v.url ? (v.url.indexOf("idb:") === 0 ? window.idbGet(v.url) : Promise.resolve(v.url)) : Promise.resolve(driveStream(v.id))).then(function(u){
-        vid.src = u; dlLink.href = u; vid.load();
+        vid.src = u; dlLink.href = u; dlLink.dataset.name = v.title || 'video'; vid.load();
         vid.playbackRate = Number(speedEl.value);
         vid.play().catch(function(){});
     });
