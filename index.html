@@ -507,7 +507,7 @@ function months(){const m={},now=new Date();for(let i=11;i>=0;i--){const d=new D
 function chart(){const m=months(),ks=Object.keys(m),mx=Math.max(1,...ks.map(k=>m[k].t));let s='<svg viewBox="0 0 360 170" style="width:100%">';ks.forEach((k,i)=>{const x=6+i*29,h=m[k].t/mx*110,hc=m[k].c/mx*110;s+=`<rect x="${x}" y="${125-h}" width="22" height="${h}" fill="#ffb800" rx="3"/><text x="${x+11}" y="${120-h}" fill="#fff" font-size="9" text-anchor="middle">${m[k].t||''}</text><text x="${x+11}" y="142" fill="#9fb3c0" font-size="8" text-anchor="middle">${k.slice(5)}</text><text x="${x+11}" y="152" fill="#9fb3c0" font-size="7" text-anchor="middle">${k.slice(2,4)}</text>`});return s+'</svg><small style="color:#9fb3c0">Projects by installation month</small>'}
 function card(p,site){const done=p.status==='Completed';return`<div class="dcard"><h3>${esc(p.name)}</h3><span class="dtag${done?' c':''}">${done?'✅ Completed':'⏳ Pending'}</span>
 <small>👤 ${esc(p.customer)} · ⚡ ${esc(p.capacity)} kW<br>📍 ${esc(p.location)} · 📅 ${esc(p.date)}</small><small>${esc(p.desc)}</small>
-${p.map?`<a href="${esc(p.map)}" target="_blank" style="color:#ffb800">🗺 Google Maps</a> `:''}
+${(p.map||p.location||p.name)?`<a href="${esc(p.map||('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p.location||p.name)))}" target="_blank" rel="noopener" style="display:inline-block;margin-top:8px;padding:8px 14px;border-radius:10px;background:#ffb800;color:#000;font-weight:700;text-decoration:none">📍 Open Location</a> `:''}
 </div>`}
 function view(){const b=$('dbody');const dm='';
 $('dtabs').innerHTML=[['proj','Projects'],['site','Sites'],['ph','Site Photos'],['reel','Project Videos']].map(t=>`<button data-t="${t[0]}" class="${tab===t[0]?'on':''}">${t[1]}</button>`).join('');
